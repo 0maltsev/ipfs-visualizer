@@ -1,0 +1,420 @@
+openapi: 3.1.0
+info:
+  title: IPFS Cluster Orchestrator API
+  version: 1.0.0
+  description: >
+    API для управления кластером IPFS в Kubernetes.
+    Используется фронтендом (React Canvas) для создания, обновления и мониторинга кластеров.
+
+servers:
+  - url: http://localhost:8080
+    description: Local Dev
+
+tags:
+  - name: Clusters
+    description: Управление IPFS кластерами
+  - name: Nodes
+    description: Управление нодами внутри кластера
+  - name: Status
+    description: Мониторинг состояния
+  - name: Logs
+    description: Логи и диагностика
+
+paths:
+
+  ############################################################
+  # Clusters
+  ############################################################
+
+  /clusters:
+    get:
+      tags: [Clusters]
+      summary: Получить список всех кластеров
+      responses:
+        "200":
+          description: Список кластеров
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Cluster"
+
+    post:
+      tags: [Clusters]
+      summary: Создать новый кластер
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClusterCreateRequest"
+      responses:
+        "201":
+          description: Кластер создан
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cluster"
+        "400":
+          description: Ошибка валидации
+
+  /clusters/{clusterId}:
+    get:
+      tags: [Clusters]
+      summary: Информация о кластере
+      parameters:
+        - $ref: "#/components/parameters/ClusterId"
+      responses:
+        "200":
+          description: Информация о кластере
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cluster"
+        "404":
+          description: Кластер не найден
+
+    delete:
+      tags: [Clusters]
+      summary: Удалить кластер
+      parameters:
+        - $ref: "#/components/parameters/ClusterId"
+      responses:
+        "204":
+          description: Кластер удалён
+        "404":
+          description: Кластер не найден
+
+    put:
+      tags: [Clusters]
+      summary: Полностью обновить кластер (из canvas)
+      parameters:
+        - $ref: "#/components/parameters/ClusterId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClusterUpdateRequest"
+      responses:
+        "200":
+          description: Изменения применены
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cluster"
+        "404":
+          description: Кластер не найден
+
+
+  ############################################################
+  # Cluster Actions
+  ############################################################
+
+  /clusters/{clusterId}/scale:
+    post:
+      tags: [Clusters]
+      summary: Масштабировать кластер (меняет replicas)
+      parameters:
+        - $ref: "#/components/parameters/ClusterId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                replicas:
+                  type: integer
+                  minimum: 1
+      responses:
+        "200":
+          description: Масштабирование запущено
+        "404":
+          description: Кластер не найден
+
+  /clusters/{clusterId}/restart:
+    post:
+      tags: [Clusters]
+      summary: Перезапустить все pods кластера
+      parameters:
+        - $ref: "#/components/parameters/ClusterId"
+      responses:
+        "200":
+          description: Перезапуск начат
+        "404":
+          description: Кластер не найден
+
+
+  ############################################################
+  # Nodes
+  ############################################################
+
+  /clusters/{clusterId}/nodes:
+    get:
+      tags: [Nodes]
+      summary: Получить список нод в кластере
+      parameters:
+        - $ref: "#/components/parameters/ClusterId"
+      responses:
+        "200":
+          description: Список нод
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Node"
+
+    post:
+      tags: [Nodes]
+      summary: Добавить новую ноду в кластер
+      parameters:
+        - $ref: "#/components/parameters/ClusterId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NodeCreateRequest"
+      responses:
+        "201":
+          description: Нода создана
+        "404":
+          description: Кластер не найден
+
+  /clusters/{clusterId}/nodes/{nodeId}:
+    get:
+      tags: [Nodes]
+      summary: Получить инфо о ноде
+      parameters:
+        - $ref: "#/components/parameters/ClusterId"
+        - $ref: "#/components/parameters/NodeId"
+      responses:
+        "200":
+          description: Информация о ноде
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Node"
+        "404":
+          description: Нода или кластер не найдены
+
+    delete:
+      tags: [Nodes]
+      summary: Удалить ноду
+      parameters:
+        - $ref: "#/components/parameters/ClusterId"
+        - $ref: "#/components/parameters/NodeId"
+      responses:
+        "204":
+          description: Удалено
+        "404":
+          description: Не найдено
+
+    put:
+      tags: [Nodes]
+      summary: Обновить параметры ноды
+      parameters:
+        - $ref: "#/components/parameters/ClusterId"
+        - $ref: "#/components/parameters/NodeId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NodeUpdateRequest"
+      responses:
+        "200":
+          description: Обновлено
+        "404":
+          description: Не найдено
+
+
+  ############################################################
+  # Monitoring / Logs
+  ############################################################
+
+  /clusters/{clusterId}/status:
+    get:
+      tags: [Status]
+      summary: Состояние кластера (pods, phase, IPFS connectivity)
+      parameters:
+        - $ref: "#/components/parameters/ClusterId"
+      responses:
+        "200":
+          description: Статус кластера
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClusterStatus"
+        "404":
+          description: Кластер не найден
+
+  /clusters/{clusterId}/nodes/{nodeId}/logs:
+    get:
+      tags: [Logs]
+      summary: Логи IPFS/Cluster для конкретного pod
+      parameters:
+        - $ref: "#/components/parameters/ClusterId"
+        - $ref: "#/components/parameters/NodeId"
+      responses:
+        "200":
+          description: Логи ноды
+          content:
+            text/plain:
+              schema:
+                type: string
+        "404":
+          description: Нода не найдена
+
+components:
+
+  ############################################################
+  # Parameters
+  ############################################################
+  parameters:
+    ClusterId:
+      name: clusterId
+      in: path
+      required: true
+      schema:
+        type: string
+
+    NodeId:
+      name: nodeId
+      in: path
+      required: true
+      schema:
+        type: string
+
+  ############################################################
+  # Schemas
+  ############################################################
+  schemas:
+
+    Cluster:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        replicas:
+          type: integer
+        nodes:
+          type: array
+          items:
+            $ref: "#/components/schemas/Node"
+        createdAt:
+          type: string
+          format: date-time
+
+    ClusterCreateRequest:
+      type: object
+      required: [name, replicas]
+      properties:
+        name:
+          type: string
+        replicas:
+          type: integer
+          minimum: 1
+        nodeTemplate:
+          $ref: "#/components/schemas/NodeSpec"
+
+    ClusterUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        replicas:
+          type: integer
+        nodes:
+          type: array
+          items:
+            $ref: "#/components/schemas/NodeUpdateRequest"
+
+    Node:
+      type: object
+      properties:
+        id:
+          type: string
+        clusterId:
+          type: string
+        role:
+          type: string
+          enum: [bootstrap, peer]
+        cpu:
+          type: string
+        memory:
+          type: string
+        storageGi:
+          type: integer
+        podName:
+          type: string
+        phase:
+          type: string
+        ready:
+          type: boolean
+
+    NodeSpec:
+      type: object
+      properties:
+        cpu:
+          type: string
+        memory:
+          type: string
+        storageGi:
+          type: integer
+
+    NodeCreateRequest:
+      type: object
+      required: [role]
+      properties:
+        role:
+          type: string
+          enum: [bootstrap, peer]
+        cpu:
+          type: string
+        memory:
+          type: string
+        storageGi:
+          type: integer
+
+    NodeUpdateRequest:
+      type: object
+      properties:
+        cpu:
+          type: string
+        memory:
+          type: string
+        storageGi:
+          type: integer
+
+    ClusterStatus:
+      type: object
+      properties:
+        clusterId:
+          type: string
+        state:
+          type: string
+          enum: [creating, running, degraded, error]
+        replicas:
+          type: integer
+        pods:
+          type: array
+          items:
+            $ref: "#/components/schemas/PodStatus"
+
+    PodStatus:
+      type: object
+      properties:
+        name:
+          type: string
+        phase:
+          type: string
+        ready:
+          type: boolean
+        ip:
+          type: string
+        node:
+          type: string
+        restarts:
+          type: integer

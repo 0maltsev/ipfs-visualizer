@@ -1,7 +1,3 @@
-# ---> Go
-# If you prefer the allow list template instead of the deny list, see community template:
-# https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
-#
 # Binaries for programs and plugins
 *.exe
 *.exe~
@@ -20,8 +16,30 @@
 
 # Go workspace file
 go.work
-go.work.sum
 
-# env file
+# Environment variables
 .env
+nexus*
 
+# IDE files
+.idea/
+
+tmp
+syntor_local_storage
+syntor_db
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Binary
+main
+agent-builder-server
+
+bin
+logs

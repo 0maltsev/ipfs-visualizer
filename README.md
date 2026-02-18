@@ -6,15 +6,13 @@
 
 - **Canvas-редактор**: перетаскивание узлов, соединение их рёбрами
 - **Топология**: ребро A → B означает, что узел A bootstraps к узлу B (B — bootstrap)
-- **Деплой в Kubernetes**: топология разворачивается как StatefulSet IPFS-кластер (по образцу `ipfs-cluster-deployment/`)
+- **Деплой в Kubernetes**: топология разворачивается как StatefulSet IPFS-кластер
 
 ## Требования
 
 - Go 1.25+
 - PostgreSQL
 - Доступ к Kubernetes (kubeconfig)
-- Node.js 18+ (для frontend)
-
 ## Запуск
 
 ### Backend
@@ -28,16 +26,6 @@ go run ./cmd/app
 ```
 
 Сервер: `http://localhost:3001`
-
-### Frontend
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Фронтенд: `http://localhost:5173` (проксирует API на :3001)
 
 ### Переменные окружения
 
@@ -61,13 +49,3 @@ npm run dev
 - `POST /v1/topologies/{id}/deploy` — задеплоить в K8s
 - `POST /v1/topologies/{id}/undeploy` — удалить из K8s
 - `GET /v1/topologies/{id}/status` — статус деплоя
-
-## Папка ipfs-cluster-deployment
-
-Содержит эталонные манифесты Kubernetes для IPFS-кластера:
-- `ipfs-cluster.yaml` — StatefulSet
-- `ipfs-service.yaml` — Service
-- `bootstrap-script-cm.yaml` — ConfigMap со скриптами
-- `secret.yaml` — ConfigMap и Secret
-
-Оркестратор генерирует аналогичные ресурсы по топологии, созданной пользователем.

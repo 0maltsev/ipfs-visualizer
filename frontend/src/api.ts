@@ -37,11 +37,13 @@ export async function deleteTopology(id: string): Promise<void> {
   if (!r.ok) throw new Error(await r.text())
 }
 
-export async function deployTopology(id: string, namespace?: string): Promise<any> {
+export async function deployTopology(id: string, options?: { namespace?: string; private?: boolean }): Promise<any> {
+  const body: { namespace?: string; private?: boolean } = { namespace: options?.namespace || 'default' }
+  if (options?.private) body.private = true
   const r = await fetch(`${API}/topologies/${id}/deploy`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ namespace: namespace || 'default' }),
+    body: JSON.stringify(body),
   })
   if (!r.ok) throw new Error(await r.text())
   return r.json()

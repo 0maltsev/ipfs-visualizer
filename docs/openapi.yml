@@ -118,6 +118,10 @@ paths:
                 namespace:
                   type: string
                   default: default
+                private:
+                  type: boolean
+                  default: false
+                  description: Приватный кластер — Service типа ClusterIP, доступ только внутри K8s
       responses:
         "202":
           description: Деплой запущен

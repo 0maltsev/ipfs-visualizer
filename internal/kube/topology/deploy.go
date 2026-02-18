@@ -37,6 +37,7 @@ type DeployConfig struct {
 	Nodes       []NodeInfo
 	Edges       []EdgeInfo
 	BootstrapID string
+	Private     bool // true = ClusterIP (доступ только внутри K8s), false = LoadBalancer
 }
 
 func Deploy(ctx context.Context, client kubernetes.Interface, cfg DeployConfig) error {
@@ -116,10 +117,14 @@ func Deploy(ctx context.Context, client kubernetes.Interface, cfg DeployConfig) 
 		}
 	}
 
+	externalSvcType := corev1.ServiceTypeLoadBalancer
+	if cfg.Private {
+		externalSvcType = corev1.ServiceTypeClusterIP
+	}
 	externalSvc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{Name: svcName + "-external", Namespace: cfg.Namespace},
 		Spec: corev1.ServiceSpec{
-			Type:     corev1.ServiceTypeLoadBalancer,
+			Type:     externalSvcType,
 			Selector: map[string]string{"app": svcName},
 			Ports: []corev1.ServicePort{
 				{Name: "swarm", Port: 4001, TargetPort: intstr.FromInt(4001)},

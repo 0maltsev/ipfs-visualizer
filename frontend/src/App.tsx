@@ -10,6 +10,7 @@ function App() {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
   const [newName, setNewName] = useState('')
+  const [deployPrivate, setDeployPrivate] = useState(false)
 
   const loadTopologies = async () => {
     try {
@@ -53,7 +54,7 @@ function App() {
 
   const handleDeploy = async (id: string) => {
     try {
-      await deployTopology(id, 'default')
+      await deployTopology(id, { namespace: 'default', private: deployPrivate })
       await loadTopologies()
     } catch (e) {
       console.error(e)
@@ -91,6 +92,18 @@ function App() {
             <button onClick={handleCreate} disabled={creating || !newName.trim()}>
               {creating ? '...' : 'Создать'}
             </button>
+          </section>
+
+          <section className="deploy-options">
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={deployPrivate}
+                onChange={(e) => setDeployPrivate(e.target.checked)}
+              />
+              <span>Приватный кластер (ClusterIP)</span>
+            </label>
+            <span className="deploy-hint">При деплое — доступ только внутри K8s</span>
           </section>
 
           <section className="list-section">

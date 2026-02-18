@@ -118,14 +118,19 @@ func (h *Handler) Deploy(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	id := chi.URLParam(r, "topologyId")
 	namespace := "default"
+	private := false
 	var body struct {
 		Namespace string `json:"namespace"`
+		Private   bool   `json:"private"`
 	}
 	_ = json.NewDecoder(r.Body).Decode(&body)
 	if body.Namespace != "" {
 		namespace = body.Namespace
 	}
-	result, err := topology.DeployTopology(ctx, h.db, h.k8s, id, namespace)
+	if body.Private {
+		private = true
+	}
+	result, err := topology.DeployTopology(ctx, h.db, h.k8s, id, namespace, private)
 	if err != nil {
 		slog.Error("DeployTopology", "error", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)

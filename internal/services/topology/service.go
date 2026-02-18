@@ -168,7 +168,7 @@ func DeleteTopology(ctx context.Context, db *sql.DB, id string) error {
 	return topologymodels.DeleteTopology(ctx, db, id)
 }
 
-func DeployTopology(ctx context.Context, db *sql.DB, k8s *kubernetes.Clientset, id string, namespace string) (*DeployResult, error) {
+func DeployTopology(ctx context.Context, db *sql.DB, k8s *kubernetes.Clientset, id string, namespace string, private bool) (*DeployResult, error) {
 	t, err := GetTopologyByID(ctx, db, id)
 	if err != nil || t == nil {
 		return nil, fmt.Errorf("topology not found: %s", id)
@@ -191,6 +191,7 @@ func DeployTopology(ctx context.Context, db *sql.DB, k8s *kubernetes.Clientset, 
 		Name:        t.Name,
 		Namespace:   namespace,
 		BootstrapID: bootstrapID,
+		Private:     private,
 	}
 	for _, n := range t.Nodes {
 		cfg.Nodes = append(cfg.Nodes, kubetopo.NodeInfo{
